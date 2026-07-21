@@ -101,6 +101,24 @@ class CorporateActionAuditorTests(unittest.TestCase):
         self.assertEqual(report["status"], "insufficient-evidence")
         self.assertTrue(report["domain_result"]["analysis_skipped"])
 
+    def test_non_finite_thresholds_are_insufficient_evidence(self) -> None:
+        for return_tolerance, jump_threshold in (
+            (float("nan"), 0.40),
+            (float("inf"), 0.40),
+            (0.02, float("nan")),
+            (0.02, float("inf")),
+        ):
+            with self.subTest(return_tolerance=return_tolerance, jump_threshold=jump_threshold):
+                report = AUDIT.build_report(
+                    AUDIT.analyze(clean_split_rows(), return_tolerance, jump_threshold)
+                )
+                self.assertEqual(report["status"], "insufficient-evidence")
+
+    def test_cli_reports_non_finite_thresholds_as_insufficient_evidence(self) -> None:
+        result = self.run_cli("--demo", "--return-tolerance", "inf", "--jump-threshold", "nan")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["status"], "insufficient-evidence")
+
     def test_invalid_event_inputs_are_insufficient_evidence(self) -> None:
         rows = clean_split_rows()
         rows[0]["split_factor"] = "0"
@@ -140,6 +158,14 @@ class CorporateActionAuditorTests(unittest.TestCase):
         self.assertEqual(report["status"], "insufficient-evidence")
         reasons = {finding["evidence"].get("reason") for finding in report["findings"]}
         self.assertIn("insufficient_symbol_history", reasons)
+
+    def test_surrounding_symbol_whitespace_is_rejected(self) -> None:
+        rows = clean_split_rows()
+        rows[1]["symbol"] = " X"
+        report = AUDIT.build_report(AUDIT.analyze(rows))
+        self.assertEqual(report["status"], "insufficient-evidence")
+        reasons = {finding["evidence"].get("reason") for finding in report["findings"]}
+        self.assertIn("symbol_surrounding_whitespace", reasons)
 
 
 if __name__ == "__main__":

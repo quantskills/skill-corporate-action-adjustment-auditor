@@ -23,8 +23,8 @@ python scripts/audit_adjustments.py --input your_data.csv --out report.json
 | --- | --- | --- |
 | `--demo` | 与 `--input` 二选一 | 使用内置示例；不能与 `--input` 同时使用 |
 | `--input <csv>` | 与 `--demo` 二选一 | 输入 UTF-8 CSV，`date` 使用 `YYYY-MM-DD` |
-| `--return-tolerance <float>` | 否 | 收益偏差容忍度，默认 `0.02`，不得为负 |
-| `--jump-threshold <float>` | 否 | 无事件价格跳点阈值，默认 `0.40`，必须大于 0 |
+| `--return-tolerance <float>` | 否 | 收益偏差容忍度，默认 `0.02`，必须是有限非负数 |
+| `--jump-threshold <float>` | 否 | 无事件价格跳点阈值，默认 `0.40`，必须是有限正数 |
 | `--out <json>` | 否 | 输出文件；省略时输出到标准输出 |
 
 同时提供两种数据入口或均未提供时，命令以参数错误码 2 退出。
@@ -40,7 +40,7 @@ python scripts/audit_adjustments.py --input your_data.csv --out report.json
 
 ## 输入与输出
 
-- 输入：至少包含 symbol、date、close、adj_close、split_factor、cash_dividend 的 CSV，每个 symbol 至少两个日期不同的观测值。`split_factor` 为当前行每一旧股对应的新股数，无事件填 `1`；`cash_dividend` 为当前行每一旧股现金分红，无事件填 `0`。两种价格必须同币种、同单位且为正数。
+- 输入：至少包含 symbol、date、close、adj_close、split_factor、cash_dividend 的 CSV；symbol 非空且不含首尾空白，每个 symbol 至少两个日期不同的观测值。`split_factor` 为当前行每一旧股对应的新股数，无事件填 `1`；`cash_dividend` 为当前行每一旧股现金分红，无事件填 `0`。两种价格必须同币种、同单位且为正数。
 - 输出：JSON 异常清单，包含原始总收益、复权收益和冲突原因。
 
 ## 数据来源

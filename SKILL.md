@@ -45,7 +45,7 @@ quantSkills:
 
 至少包含 symbol、date、close、adj_close、split_factor、cash_dividend 的 CSV。
 
-- `symbol` 必须为非空证券标识符；`date` 必须使用 ISO-8601 `YYYY-MM-DD` 格式。
+- `symbol` 必须为非空且不含首尾空白的证券标识符；`date` 必须使用 ISO-8601 `YYYY-MM-DD` 格式。
 - 每个待审计 `symbol` 至少需要两个日期不同的观测值，否则只能返回证据不足。
 - `split_factor` 表示当前行事件中“每一旧股对应的新股数”，无拆并股时填 `1`，且必须大于 0。
 - `cash_dividend` 表示当前行除息事件按每一旧股计的现金分红，无分红时填 `0`，且不得为负。
@@ -57,8 +57,8 @@ quantSkills:
 
 - `--demo`：使用内置样例；与 `--input` 互斥且二者必须提供一个。
 - `--input <csv>`：读取 UTF-8 CSV；与 `--demo` 互斥且二者必须提供一个。
-- `--return-tolerance <float>`：原始总收益与复权收益允许的绝对偏差，默认 `0.02`，不得为负。
-- `--jump-threshold <float>`：无事件原始价格跳点阈值，默认 `0.40`，必须大于 0。
+- `--return-tolerance <float>`：原始总收益与复权收益允许的绝对偏差，默认 `0.02`，必须是有限非负数。
+- `--jump-threshold <float>`：无事件原始价格跳点阈值，默认 `0.40`，必须是有限正数。
 - `--out <json>`：可选输出路径；省略时把 JSON 写到标准输出。
 - 同时提供两种数据源或两者均未提供时，命令以参数错误码 2 退出。
 

@@ -167,19 +167,22 @@ def analyze(
     errors: list[object] = []
     if not rows:
         errors.append("at least two rows for one symbol are required")
-    if return_tolerance < 0:
-        errors.append("return-tolerance must be non-negative")
-    if jump_threshold <= 0:
-        errors.append("jump-threshold must be positive")
+    if not math.isfinite(return_tolerance) or return_tolerance < 0:
+        errors.append("return-tolerance must be finite and non-negative")
+    if not math.isfinite(jump_threshold) or jump_threshold <= 0:
+        errors.append("jump-threshold must be finite and positive")
     seen: set[tuple[str, str]] = set()
     symbol_counts: dict[str, int] = {}
     for row_number, row in enumerate(rows, 2):
-        symbol = row.get("symbol", "").strip()
+        raw_symbol = row.get("symbol", "")
+        symbol = raw_symbol.strip()
         date_value = row.get("date", "")
         key = (symbol, date_value)
         symbol_counts[symbol] = symbol_counts.get(symbol, 0) + 1
         if not symbol:
             errors.append({"reason": "empty_symbol", "row": row_number})
+        elif raw_symbol != symbol:
+            errors.append({"reason": "symbol_surrounding_whitespace", "row": row_number})
         try:
             if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_value):
                 raise ValueError("date must use YYYY-MM-DD")
@@ -203,7 +206,8 @@ def analyze(
 
     findings: list[dict[str, object]] = []
     grouped: dict[str, list[dict[str, str]]] = {}
-    for row in rows: grouped.setdefault(row.get("symbol", ""), []).append(row)
+    for row in rows:
+        grouped.setdefault(row.get("symbol", "").strip(), []).append(row)
     for symbol, items in grouped.items():
         items.sort(key=lambda x: x.get("date", ""))
         for prev, cur in zip(items, items[1:]):
