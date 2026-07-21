@@ -145,6 +145,30 @@ class CorporateActionAuditorTests(unittest.TestCase):
             self.assertEqual(report["status"], "insufficient-evidence")
             self.assertTrue(report["domain_result"]["analysis_skipped"])
 
+    def test_cli_handles_missing_terminal_text_values(self) -> None:
+        cases = (
+            (
+                "date,close,adj_close,split_factor,cash_dividend,symbol\n"
+                "2025-01-01,100,100,1,0\n",
+                "empty_symbol",
+            ),
+            (
+                "symbol,close,adj_close,split_factor,cash_dividend,date\n"
+                "X,100,100,1,0\n",
+                "invalid_date",
+            ),
+        )
+        for content, reason in cases:
+            with self.subTest(reason=reason), tempfile.TemporaryDirectory() as directory:
+                source = Path(directory) / "missing-terminal-value.csv"
+                source.write_text(content, encoding="utf-8")
+                result = self.run_cli("--input", str(source))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                payload = json.loads(result.stdout)
+                self.assertEqual(payload["status"], "insufficient-evidence")
+                evidence = [finding["evidence"] for finding in payload["findings"]]
+                self.assertTrue(any(isinstance(item, dict) and item.get("reason") == reason for item in evidence))
+
     def test_non_positive_price_is_insufficient_evidence(self) -> None:
         rows = clean_split_rows()
         rows[0]["close"] = "0"

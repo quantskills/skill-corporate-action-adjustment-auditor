@@ -55,6 +55,10 @@ def number(value: object, default: float = 0.0) -> float:
         return default
 
 
+def text(value: object) -> str:
+    return value if isinstance(value, str) else ""
+
+
 def _normalize_finding(item: object, index: int, source: str) -> dict[str, object]:
     if isinstance(item, dict):
         evidence = item.get("evidence", item)
@@ -174,9 +178,9 @@ def analyze(
     seen: set[tuple[str, str]] = set()
     symbol_counts: dict[str, int] = {}
     for row_number, row in enumerate(rows, 2):
-        raw_symbol = row.get("symbol", "")
+        raw_symbol = text(row.get("symbol"))
         symbol = raw_symbol.strip()
-        date_value = row.get("date", "")
+        date_value = text(row.get("date"))
         key = (symbol, date_value)
         symbol_counts[symbol] = symbol_counts.get(symbol, 0) + 1
         if not symbol:
@@ -207,7 +211,7 @@ def analyze(
     findings: list[dict[str, object]] = []
     grouped: dict[str, list[dict[str, str]]] = {}
     for row in rows:
-        grouped.setdefault(row.get("symbol", "").strip(), []).append(row)
+        grouped.setdefault(text(row.get("symbol")).strip(), []).append(row)
     for symbol, items in grouped.items():
         items.sort(key=lambda x: x.get("date", ""))
         for prev, cur in zip(items, items[1:]):
