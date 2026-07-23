@@ -59,7 +59,10 @@ skill-corporate-action-adjustment-auditor/
 ├── .gitignore
 ├── LICENSE
 ├── requirements.txt
-├── agents/openai.yaml
+├── agents/
+│   ├── cursor-rule.mdc
+│   ├── openai.yaml
+│   └── portable-loader.md
 ├── scripts/audit_adjustments.py
 ├── tests/test_audit_adjustments.py
 ├── validation/README.md
